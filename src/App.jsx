@@ -74,47 +74,36 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
 
-  // ---------------------------------------------------------
-  // 1. LOGIKA VERIFIKASI GOOGLE (FILE HTML HACK)
-  // ---------------------------------------------------------
-  // Ini akan mengecek jika URL browser diakhiri dengan nama file verifikasi Anda.
-  // Jika ya, React akan berhenti merender aplikasi dan hanya menampilkan teks verifikasi.
-  // Nama file: google24f5818bb3f489e6.html
-  if (typeof window !== 'undefined' && window.location.pathname.includes('google24f5818bb3f489e6.html')) {
-    return (
-      <div style={{
-          fontFamily: 'monospace', 
-          whiteSpace: 'pre-wrap', 
-          wordBreak: 'break-all',
-          padding: '20px'
-      }}>
-        google-site-verification: google24f5818bb3f489e6.html
-      </div>
-    );
-  }
-  // ---------------------------------------------------------
-
-  // --- SETUP META TAG & POPUNDER (Backup) ---
+  // --- SETUP GOOGLE VERIFICATION & ADS ---
   useEffect(() => {
-      // Script Popunder
+      // 1. Google Site Verification (PRIORITAS UTAMA)
+      // Kita gunakan 'prepend' agar tag ini muncul PALING ATAS di dalam <head>
+      const metaName = "google-site-verification";
+      // Cek dulu apakah sudah ada agar tidak duplikat
+      let meta = document.querySelector(`meta[name="${metaName}"]`);
+      
+      if (!meta) {
+          meta = document.createElement('meta');
+          meta.name = metaName;
+          meta.content = "CpmEco7qhJ4DQwH-O9SCVn9OeVq20wAThf9DU4L-zRk";
+          document.head.prepend(meta); // Prepend menaruh elemen di urutan pertama
+      } else {
+          // Jika tag sudah ada (misal dari sisa render sebelumnya), pastikan isinya benar
+          meta.content = "CpmEco7qhJ4DQwH-O9SCVn9OeVq20wAThf9DU4L-zRk";
+      }
+
+      // 2. Script Popunder
       const popScript = document.createElement('script');
       popScript.src = ADS_CONFIG.popunder;
       popScript.async = true;
       document.body.appendChild(popScript);
 
-      // (Opsional) Meta tag verification tetap dibiarkan sebagai cadangan
-      const meta = document.createElement('meta');
-      meta.name = "google-site-verification";
-      meta.content = "CpmEco7qhJ4DQwH-O9SCVn9OeVq20wAThf9DU4L-zRk";
-      document.head.appendChild(meta);
-
       return () => {
           if (document.body.contains(popScript)) {
             document.body.removeChild(popScript);
           }
-          if (document.head.contains(meta)) {
-            document.head.removeChild(meta);
-        }
+          // Kita TIDAK menghapus meta tag saat cleanup agar tetap terbaca bot
+          // meskipun komponen di-remount.
       };
   }, []);
 
