@@ -1,37 +1,78 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Download, Link, Play, FileVideo, Music, AlertCircle, X, CheckCircle, Loader2 } from 'lucide-react';
 
-// --- KONFIGURASI IKLAN (ADSTERRA & POPADS) ---
+// --- KONFIGURASI LINK IKLAN ---
+const ADS_CONFIG = {
+  popunder: 'https://pl28392525.effectivegatecpm.com/3d/67/d3/3d67d376994d4f3c6f15ae7b4cd3fdce.js',
+  smartlink: 'https://www.effectivegatecpm.com/efpsrvbxq?key=5398d447159bc55dce9620aeebf89344',
+  native_script: 'https://pl28392557.effectivegatecpm.com/1993f79f7b6338d23dca2cc8bfa88cde/invoke.js',
+  banner_key: '7e3492e92272f7fe28349c34dbcdedc5'
+};
+
+// --- KOMPONEN IKLAN (ADSTERRA / EFFECTIVEGATE) ---
 const AdSpace = ({ type }) => {
   const adRef = useRef(null);
 
   useEffect(() => {
-    if (adRef.current) {
-        adRef.current.innerHTML = ''; // Bersihkan
+    if (!adRef.current) return;
 
-        if (type === 'banner') {
-            // CONTOH: Script Leaderboard 728x90 Adsterra
-            const s = document.createElement('script');
-            s.type = 'text/javascript';
-            s.src = '//www.highperformanceformat.com/7dfb903a393b40b7cb12945765eabcce/invoke.js'; 
-            const conf = document.createElement('script');
-            conf.innerHTML = `atOptions = { 'key' : '7dfb903a393b40b7cb12945765eabcce', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };`;
-            adRef.current.appendChild(conf);
-            adRef.current.appendChild(s);
-        } else if (type === 'native') {
-             // CONTOH: Script Native Adsterra
-             const s = document.createElement('script');
-             s.src = '//pl28389449.effectivegatecpm.com/b552a99866fc5bc73b733a6aa6fc8ded/invoke.js'; 
-             s.async = true;
-             s.setAttribute('data-cfasync', 'false');
-             adRef.current.appendChild(s);
+    // Bersihkan konten sebelumnya agar tidak duplikat saat re-render
+    adRef.current.innerHTML = '';
+
+    if (type === 'banner') {
+        // --- 1. BANNER 728x90 BARU ---
+        const container = document.createElement('div');
+        
+        // Script Konfigurasi
+        const conf = document.createElement('script');
+        conf.type = 'text/javascript';
+        conf.innerHTML = `
+            atOptions = {
+                'key' : '${ADS_CONFIG.banner_key}',
+                'format' : 'iframe',
+                'height' : 90,
+                'width' : 728,
+                'params' : {}
+            };
+        `;
+        
+        // Script Invoke
+        const s = document.createElement('script');
+        s.type = 'text/javascript';
+        s.src = `//www.highperformanceformat.com/${ADS_CONFIG.banner_key}/invoke.js`;
+        
+        container.appendChild(conf);
+        container.appendChild(s);
+        adRef.current.appendChild(container);
+
+    } else if (type === 'native') {
+        // --- 2. NATIVE BANNER BARU ---
+        // Membuat container spesifik sesuai kode iklan
+        const nativeContainerId = "container-1993f79f7b6338d23dca2cc8bfa88cde";
+        
+        // Cek apakah container sudah ada untuk menghindari duplikasi ID
+        let container = document.getElementById(nativeContainerId);
+        
+        if (!container) {
+            container = document.createElement('div');
+            container.id = nativeContainerId;
+            adRef.current.appendChild(container);
         }
+
+        // Script Native
+        const s = document.createElement('script');
+        s.async = true;
+        s.setAttribute('data-cfasync', 'false');
+        s.src = ADS_CONFIG.native_script;
+        
+        adRef.current.appendChild(s);
     }
   }, [type]);
 
   return (
-    <div ref={adRef} className="w-full flex justify-center items-center my-6 min-h-[100px] bg-gray-900/50 rounded-lg overflow-hidden border border-gray-800">
-        <span className="text-gray-600 text-xs">Iklan {type} Area</span>
+    <div ref={adRef} className="w-full flex justify-center items-center my-6 min-h-[100px] bg-gray-900/50 rounded-lg overflow-hidden border border-gray-800 relative z-10">
+        {/* Placeholder text jika iklan belum load */}
+        <span className="text-gray-700 text-xs absolute z-0">Ads Area</span>
     </div>
   );
 };
@@ -42,34 +83,40 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
 
-  // --- PASANG POPADS & SOCIAL BAR ---
+  // --- SETUP META TAG & POPUNDER ---
   useEffect(() => {
-      // 1. Script Popunder
+      // 1. Google Site Verification
+      const meta = document.createElement('meta');
+      meta.name = "google-site-verification";
+      meta.content = "CpmEco7qhJ4DQwH-O9SCVn9OeVq20wAThf9DU4L-zRk";
+      document.head.appendChild(meta);
+
+      // 2. Script Popunder Baru
       const popScript = document.createElement('script');
-      popScript.src = '//pl28388818.effectivegatecpm.com/14/6c/42/146c427c6088beb9f9645f841587fca6.js'; 
+      popScript.src = ADS_CONFIG.popunder;
       popScript.async = true;
       document.body.appendChild(popScript);
 
-      // 2. Script Social Bar
-      const socialScript = document.createElement('script');
-      socialScript.src = '//pl28389447.effectivegatecpm.com/5d/77/12/5d771284761234a25dbe5a311f6ed0a9.js';
-      // PERBAIKAN: Menggunakan nama variabel yang benar (socialScript)
-      socialScript.async = true; 
-      document.body.appendChild(socialScript);
-
-      // Cleanup saat komponen di-unmount
+      // Cleanup
       return () => {
+          if (document.head.contains(meta)) {
+              document.head.removeChild(meta);
+          }
           if (document.body.contains(popScript)) {
             document.body.removeChild(popScript);
-          }
-          if (document.body.contains(socialScript)) {
-            document.body.removeChild(socialScript);
           }
       };
   }, []);
 
   const handleDownload = (e) => {
     e.preventDefault();
+    
+    // --- 3. IMPLEMENTASI SMARTLINK ---
+    // Membuka Smartlink di tab baru saat tombol download ditekan
+    if (ADS_CONFIG.smartlink) {
+        window.open(ADS_CONFIG.smartlink, '_blank');
+    }
+
     if (!url.includes('tiktok.com')) {
       setError('Mohon masukkan link TikTok yang valid!');
       return;
@@ -93,7 +140,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f0f12] text-gray-100 font-sans selection:bg-pink-500 selection:text-white">
+    <div className="min-h-screen bg-[#0f0f12] text-gray-100 font-sans selection:bg-pink-500 selection:text-white overflow-x-hidden">
       
       {/* Navbar */}
       <nav className="border-b border-gray-800 bg-[#0f0f12]/90 backdrop-blur sticky top-0 z-50">
@@ -110,7 +157,7 @@ export default function App() {
 
       <main className="container mx-auto px-4 py-10 max-w-3xl">
         
-        {/* IKLAN ATAS */}
+        {/* IKLAN ATAS (Banner 728x90) */}
         <AdSpace type="banner" />
 
         <div className="text-center mb-10">
@@ -121,7 +168,7 @@ export default function App() {
         </div>
 
         {/* Input Box */}
-        <div className="bg-[#18181b] p-2 rounded-2xl border-2 border-gray-700 shadow-2xl shadow-pink-500/10 focus-within:border-pink-500 transition-all duration-300 transform focus-within:-translate-y-1">
+        <div className="bg-[#18181b] p-2 rounded-2xl border-2 border-gray-700 shadow-2xl shadow-pink-500/10 focus-within:border-pink-500 transition-all duration-300 transform focus-within:-translate-y-1 z-20 relative">
           <form onSubmit={handleDownload} className="flex flex-col md:flex-row gap-2">
             <div className="flex-1 flex items-center px-4">
               <Link className="text-gray-500 mr-3" />
@@ -137,7 +184,7 @@ export default function App() {
             <button 
                 type="submit" 
                 disabled={loading}
-                className="bg-gradient-to-r from-pink-600 to-pink-500 hover:from-pink-500 hover:to-pink-400 text-white font-bold py-4 px-8 rounded-xl transition-all shadow-lg shadow-pink-900/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="bg-gradient-to-r from-pink-600 to-pink-500 hover:from-pink-500 hover:to-pink-400 text-white font-bold py-4 px-8 rounded-xl transition-all shadow-lg shadow-pink-900/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
             >
               {loading ? <Loader2 className="animate-spin" /> : <><Download size={20} /> Download</>}
             </button>
@@ -171,7 +218,7 @@ export default function App() {
 
                   {/* TOMBOL CUAN */}
                   <div className="space-y-3">
-                    <a href={result.videoUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full p-4 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl border border-gray-700 transition group cursor-pointer">
+                    <a href={result.videoUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full p-4 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl border border-gray-700 transition group cursor-pointer" onClick={() => window.open(ADS_CONFIG.smartlink, '_blank')}>
                         <div className="flex items-center gap-3">
                             <div className="bg-blue-500/20 p-2 rounded-lg text-blue-400"><FileVideo size={20} /></div>
                             <div className="text-left">
@@ -182,7 +229,7 @@ export default function App() {
                         <Download size={20} className="text-gray-500 group-hover:text-blue-400" />
                     </a>
                     
-                    <a href={result.musicUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full p-4 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl border border-gray-700 transition group cursor-pointer">
+                    <a href={result.musicUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between w-full p-4 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl border border-gray-700 transition group cursor-pointer" onClick={() => window.open(ADS_CONFIG.smartlink, '_blank')}>
                         <div className="flex items-center gap-3">
                             <div className="bg-green-500/20 p-2 rounded-lg text-green-400"><Music size={20} /></div>
                             <div className="text-left">
@@ -196,7 +243,7 @@ export default function App() {
                 </div>
               </div>
               
-              {/* IKLAN DI DALAM HASIL */}
+              {/* IKLAN DI DALAM HASIL (NATIVE) */}
               <div className="bg-[#121212] p-4 border-t border-gray-800">
                   <p className="text-center text-xs text-gray-600 mb-2">SPONSORED</p>
                   <AdSpace type="native" />
@@ -211,7 +258,7 @@ export default function App() {
             <p>TikSave adalah alat gratis untuk mengunduh video TikTok tanpa tanda air (watermark) secara online. Anda dapat menyimpan video dalam kualitas HD MP4 atau MP3.</p>
         </div>
 
-        {/* IKLAN BAWAH */}
+        {/* IKLAN BAWAH (Banner 728x90) */}
         <AdSpace type="banner" />
 
       </main>
