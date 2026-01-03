@@ -16,14 +16,12 @@ const AdSpace = ({ type }) => {
   useEffect(() => {
     if (!adRef.current) return;
 
-    // Bersihkan konten sebelumnya agar tidak duplikat saat re-render
+    // Bersihkan konten sebelumnya
     adRef.current.innerHTML = '';
 
     if (type === 'banner') {
-        // --- 1. BANNER 728x90 BARU ---
         const container = document.createElement('div');
         
-        // Script Konfigurasi
         const conf = document.createElement('script');
         conf.type = 'text/javascript';
         conf.innerHTML = `
@@ -36,7 +34,6 @@ const AdSpace = ({ type }) => {
             };
         `;
         
-        // Script Invoke
         const s = document.createElement('script');
         s.type = 'text/javascript';
         s.src = `//www.highperformanceformat.com/${ADS_CONFIG.banner_key}/invoke.js`;
@@ -46,11 +43,7 @@ const AdSpace = ({ type }) => {
         adRef.current.appendChild(container);
 
     } else if (type === 'native') {
-        // --- 2. NATIVE BANNER BARU ---
-        // Membuat container spesifik sesuai kode iklan
         const nativeContainerId = "container-1993f79f7b6338d23dca2cc8bfa88cde";
-        
-        // Cek apakah container sudah ada untuk menghindari duplikasi ID
         let container = document.getElementById(nativeContainerId);
         
         if (!container) {
@@ -59,7 +52,6 @@ const AdSpace = ({ type }) => {
             adRef.current.appendChild(container);
         }
 
-        // Script Native
         const s = document.createElement('script');
         s.async = true;
         s.setAttribute('data-cfasync', 'false');
@@ -71,7 +63,6 @@ const AdSpace = ({ type }) => {
 
   return (
     <div ref={adRef} className="w-full flex justify-center items-center my-6 min-h-[100px] bg-gray-900/50 rounded-lg overflow-hidden border border-gray-800 relative z-10">
-        {/* Placeholder text jika iklan belum load */}
         <span className="text-gray-700 text-xs absolute z-0">Ads Area</span>
     </div>
   );
@@ -83,36 +74,53 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
 
-  // --- SETUP META TAG & POPUNDER ---
-  useEffect(() => {
-      // 1. Google Site Verification
-      const meta = document.createElement('meta');
-      meta.name = "google-site-verification";
-      meta.content = "CpmEco7qhJ4DQwH-O9SCVn9OeVq20wAThf9DU4L-zRk";
-      document.head.appendChild(meta);
+  // ---------------------------------------------------------
+  // 1. LOGIKA VERIFIKASI GOOGLE (FILE HTML HACK)
+  // ---------------------------------------------------------
+  // Ini akan mengecek jika URL browser diakhiri dengan nama file verifikasi Anda.
+  // Jika ya, React akan berhenti merender aplikasi dan hanya menampilkan teks verifikasi.
+  // Nama file: google24f5818bb3f489e6.html
+  if (typeof window !== 'undefined' && window.location.pathname.includes('google24f5818bb3f489e6.html')) {
+    return (
+      <div style={{
+          fontFamily: 'monospace', 
+          whiteSpace: 'pre-wrap', 
+          wordBreak: 'break-all',
+          padding: '20px'
+      }}>
+        google-site-verification: google24f5818bb3f489e6.html
+      </div>
+    );
+  }
+  // ---------------------------------------------------------
 
-      // 2. Script Popunder Baru
+  // --- SETUP META TAG & POPUNDER (Backup) ---
+  useEffect(() => {
+      // Script Popunder
       const popScript = document.createElement('script');
       popScript.src = ADS_CONFIG.popunder;
       popScript.async = true;
       document.body.appendChild(popScript);
 
-      // Cleanup
+      // (Opsional) Meta tag verification tetap dibiarkan sebagai cadangan
+      const meta = document.createElement('meta');
+      meta.name = "google-site-verification";
+      meta.content = "CpmEco7qhJ4DQwH-O9SCVn9OeVq20wAThf9DU4L-zRk";
+      document.head.appendChild(meta);
+
       return () => {
-          if (document.head.contains(meta)) {
-              document.head.removeChild(meta);
-          }
           if (document.body.contains(popScript)) {
             document.body.removeChild(popScript);
           }
+          if (document.head.contains(meta)) {
+            document.head.removeChild(meta);
+        }
       };
   }, []);
 
   const handleDownload = (e) => {
     e.preventDefault();
     
-    // --- 3. IMPLEMENTASI SMARTLINK ---
-    // Membuka Smartlink di tab baru saat tombol download ditekan
     if (ADS_CONFIG.smartlink) {
         window.open(ADS_CONFIG.smartlink, '_blank');
     }
@@ -126,7 +134,7 @@ export default function App() {
     setLoading(true);
     setResult(null);
 
-    // SIMULASI FETCH API (2 Detik)
+    // SIMULASI FETCH API
     setTimeout(() => {
       setLoading(false);
       setResult({
